@@ -4,49 +4,56 @@ const axios = require('axios');
 bmbtz({
   nomCom: "pair",
   aliases: ["session", "code", "paircode", "qrcode"],
-  reaction: '☘️',
+  reaction: '🟢',
   categorie: 'system'
 }, async (dest, zk, commandeOptions) => {
   const { repondre, arg, ms } = commandeOptions;
 
   if (!arg || arg.length === 0) {
-    return repondre("Example Usage: .code 2541111xxxxx.");
+    return repondre("Example Usage: .code 255xxxxxxxxx");
   }
 
   try {
-    await repondre("Queen-M is generating your pairing code ✅...");
+    const phoneNumber = arg.join(" ");
+    const encodedNumber = encodeURIComponent(phoneNumber);
 
-    const encodedNumber = encodeURIComponent(arg.join(" "));
+    await repondre("⏳ bmb tech is generating your pairing code...");
+
     const response = await axios.get(`https://bmb-pair-site.onrender.com/code?number=${encodedNumber}`);
     const data = response.data;
 
-    if (data && data.code) {
-      const pairingCode = data.code;
-
-      // Tuma kwanza PAIR CODE yenye context ya newsletter
-      await zk.sendMessage(dest, {
-        text: pairingCode,
-        contextInfo: {
-          isForwarded: true,
-          forwardedNewsletterMessageInfo: {
-            newsletterJid: '120363288304618280@newsletter',
-            newsletterName: "Queen-M",
-            serverMessageId: 143
-          },
-          forwardingScore: 999
-        }
-      }, { quoted: ms });
-
-      // Kisha tuma PICHA PEKE YAKE bila contextInfo
-      await zk.sendMessage(dest, {
-        image: { url: 'https://files.catbox.moe/7tmps9.jpg' },
-        caption: "Scan this image if required to pair manually."
-      }, { quoted: ms });
-
-      await repondre("Here is your pair code, copy and paste it above or use the image if needed.");
-    } else {
+    if (!data || !data.code) {
       throw new Error("Invalid response from API.");
     }
+
+    const pairingCode = data.code;
+
+    // Tuma ujumbe wa SUCCESS ukitumia newsletter
+    const pairingMsg = `
+🔐 *𝗣𝗔𝗜𝗥𝗜𝗡𝗚 𝗦𝗨𝗖𝗖𝗘𝗦𝗦𝗙𝗨𝗟* 🔐
+
+📞 Number: ${phoneNumber}
+🧾 Pair Code: ${pairingCode}
+
+✅ Use this code on your nova tech bot
+
+🌐 Powered by bmb tech`;
+
+    await zk.sendMessage(dest, {
+      text: pairingMsg,
+      contextInfo: {
+        forwardingScore: 999,
+        isForwarded: true,
+        forwardedNewsletterMessageInfo: {
+          newsletterJid: '120363288304618280@newsletter',
+          newsletterName: "B.M.B-TECH",
+          serverMessageId: 143
+        }
+      }
+    }, { quoted: ms });
+
+    // Kisha tuma code PEKE YAKE bila newsletterJid wala contextInfo
+    await zk.sendMessage(dest, { text: pairingCode }, { quoted: ms });
 
   } catch (error) {
     console.error("Error getting API response:", error.message);
