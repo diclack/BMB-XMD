@@ -4,7 +4,7 @@ const axios = require('axios');
 bmbtz({
   nomCom: "pair",
   aliases: ["session", "code", "paircode", "qrcode"],
-  reaction: '🟢',
+  reaction: '☘️',
   categorie: 'system'
 }, async (dest, zk, commandeOptions) => {
   const { repondre, arg, ms } = commandeOptions;
@@ -17,8 +17,10 @@ bmbtz({
     const phoneNumber = arg.join(" ");
     const encodedNumber = encodeURIComponent(phoneNumber);
 
+    // Ujumbe wa kwanza: loading
     await repondre("⏳ bmb tech is generating your pairing code...");
 
+    // Fetch kutoka API
     const response = await axios.get(`https://bmb-pair-site.onrender.com/code?number=${encodedNumber}`);
     const data = response.data;
 
@@ -28,7 +30,7 @@ bmbtz({
 
     const pairingCode = data.code;
 
-    // Tuma ujumbe wa SUCCESS ukitumia newsletter
+    // Ujumbe wa pili: Pairing info (wenye newsletter)
     const pairingMsg = `
 🔐 *𝗣𝗔𝗜𝗥𝗜𝗡𝗚 𝗦𝗨𝗖𝗖𝗘𝗦𝗦𝗙𝗨𝗟* 🔐
 
@@ -52,8 +54,10 @@ bmbtz({
       }
     }, { quoted: ms });
 
-    // Kisha tuma code PEKE YAKE bila newsletterJid wala contextInfo
-    await zk.sendMessage(dest, { text: pairingCode }, { quoted: ms });
+    // Ujumbe wa tatu: Code pekee (bila newsletterJid)
+    setTimeout(async () => {
+      await zk.sendMessage(dest, { text: pairingCode }, { quoted: ms });
+    }, 1000); // sekunde 1 baadaye
 
   } catch (error) {
     console.error("Error getting API response:", error.message);
